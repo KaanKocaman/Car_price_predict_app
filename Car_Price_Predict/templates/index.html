@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Araba Fiyat Tahmini</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .prediction-result {
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Araba Fiyat Tahmini</h1>
+    <form id="prediction-form">
+        <label for="Marka">Marka:</label>
+        <select id="Marka" name="Marka" required>
+            <option value="" disabled selected>Marka Seçiniz</option>
+            {% for marka in marka_model_dict %}
+            <option value="{{ marka }}">{{ marka }}</option>
+            {% endfor %}
+        </select><br><br>
+        
+        <label for="Model">Model:</label>
+        <select id="Model" name="Model" required>
+            <option value="" disabled selected>Model Seçiniz</option>
+        </select><br><br>
+        
+        <label for="Km">Km:</label>
+        <input type="number" id="Km" name="Km" required><br><br>
+        
+        <label for="Renk">Renk:</label>
+        <select id="Renk" name="Renk" required>
+            <option value="Beyaz">Beyaz</option>
+            <option value="Siyah">Siyah</option>
+            <option value="Gümüş Gri">Gümüş Gri</option>
+            <option value="Kırmızı">Kırmızı</option>
+            <option value="Bej">Bej</option>
+            <option value="Gri">Gri</option>
+            <option value="Füme">Füme</option>
+            <option value="Bordo">Bordo</option>
+            <option value="Turuncu">Turuncu</option>
+            <option value="Mavi">Mavi</option>
+            <option value="Turkuaz">Turkuaz</option>
+            <option value="Lacivert">Lacivert</option>
+            <option value="Yeşil">Yeşil</option>
+            <option value="Şampanya">Şampanya</option>
+            <option value="Sarı">Sarı</option>
+            <option value="Kahverengi">Kahverengi</option>
+            <option value="Mor">Mor</option>
+            <option value="Pembe">Pembe</option>
+        </select><br><br>
+        
+        <label for="Yaş">Yaş:</label>
+        <input type="number" id="Yaş" name="Yaş" required><br><br>
+        
+        <label for="Vites">Vites:</label>
+        <select id="Vites" name="Vites" required>
+            <option value="Manuel">Manuel</option>
+            <option value="Otomatik">Otomatik</option>
+            <option value="Yarı Otomatik">Yarı Otomatik</option>
+        </select><br><br>
+        
+        <label for="Yakıt">Yakıt:</label>
+        <select id="Yakıt" name="Yakıt" required>
+            <option value="Benzin">Benzin</option>
+            <option value="Benzin & LPG">Benzin & LPG</option>
+            <option value="Dizel">Dizel</option>
+            <option value="Elektrik">Elektrik</option>
+            <option value="Hybrid">Hybrid</option>
+        </select><br><br>
+        
+        <button type="button" id="predict-btn">Tahmin Et</button>
+    </form>
+
+    <div id="prediction-result" class="prediction-result"></div>
+
+    <script>
+        $(document).ready(function() {
+            // Marka ve model dictionary'sini al
+            var markaModelDict = {{ marka_model_dict|tojson|safe }};
+            var markaSelect = $('#Marka');
+            var modelSelect = $('#Model');
+            
+            // Marka seçildiğinde modelleri güncelle
+            markaSelect.change(function() {
+                var selectedMarka = $(this).val();
+                var models = markaModelDict[selectedMarka];
+                
+                // Model select'i temizle ve yeni modelleri ekle
+                modelSelect.empty().append('<option value="" disabled selected>Model Seçiniz</option>');
+                $.each(models, function(index, model) {
+                    modelSelect.append('<option value="' + model + '">' + model + '</option>');
+                });
+            });
+            
+            // Tahmin et butonuna tıklama olayı
+            $('#predict-btn').click(function() {
+                // Form verilerini topla
+                var brand = $('#Marka').val();
+                var model = $('#Model').val();
+                var km = $('#Km').val();
+                var color = $('#Renk').val();
+                var age = $('#Yaş').val();
+                var gear = $('#Vites').val();
+                var fuel = $('#Yakıt').val();
+                
+                // AJAX isteği gönder
+                $.ajax({
+                    type: 'POST',
+                    url: '/predict',
+                    data: {
+                        Marka: brand,
+                        Model: model,
+                        Km: km,
+                        Renk: color,
+                        Yaş: age,
+                        Vites: gear,
+                        Yakıt: fuel
+                    },
+                    success: function(response) {
+                        $('#prediction-result').text('Tahmin edilen fiyat: ' + response.prediction + 'TL');
+                    },
+                    error: function(xhr, status, error) {
+                        alert('Bir Hata Oluştu');
+                        console.error(error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
